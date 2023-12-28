@@ -40,39 +40,28 @@ Check for winner:
 
 require 'abbrev'
 
-# possible_moves = [
-# 	:top_left,
-# 	:top_center,
-# 	:top_right,
-# 	:center_left,
-# 	:center,
-# 	:center_right,
-# 	:bottom_left,
-# 	:bottom_center,
-# 	:bottom_right
-# ]
-# possible_moves_abbrev = possible_moves.abbrev
-
 moves_hash = {
-	top_left: [2, ' ', 1],
-	top_center: [6, ' ', 2],
+	top_left: [2, 'X', 1],
+	top_center: [6, 'X', 2],
 	top_right: [10, ' ', 3],
-	center_left: [28, ' ', 4],
-	center: [32, ' ', 5],
+	center_left: [28, 'O', 4],
+	center: [32, 'O', 5],
 	center_right: [36, ' ', 6],
-	bottom_left: [54, ' ', 7],
-	bottom_center: [58, ' ', 8],
+	bottom_left: [54, 'O', 7],
+	bottom_center: [58, 'X', 8],
 	bottom_right: [62, ' ', 9]
 }
 
-top_across = [1, 2, 3]
-mid_across = [4, 5, 6]
-bottom_across = [7, 8, 9]
-left_down = [1, 4, 7]
-mid_down = [2, 5, 8]
-right_down = [3, 6, 9]
-diag_right= [1, 5, 9]
-diag_left = [3, 5, 7]
+win_sequences = [
+	top_across = [1, 2, 3],
+	mid_across = [4, 5, 6],
+	bottom_across = [7, 8, 9],
+	left_down = [1, 4, 7],
+	mid_down = [2, 5, 8],
+	right_down = [3, 6, 9],
+	diag_right= [1, 5, 9],
+	diag_left = [3, 5, 7],
+]
 
 wins_hash = {
 	top_left: [top_across, left_down, diag_right],
@@ -227,13 +216,40 @@ def get_user_move(symbol, moves_hash)
 end
 
 def get_random_computer_move(symbol, moves_hash)
-	possible_moves = moves_hash.select do |_, status|
-		status[1] == ' '
-	end
+	possible_moves = moves_hash.select { |_, status| status[1] == ' ' }
 	open_squares = possible_moves.keys
 	random = rand(0..(open_squares.size - 1))
 	move = open_squares[random]
 	moves_hash[move][1] = symbol
+end
+
+def check_for_threat(moves_hash, win_sequences, possible_moves, symbol)
+	symbol == 'X' ? enemy_symbol = 'O' : enemy_symbol = 'X'
+	open_squares = []
+	possible_moves.each do |_, status|
+		open_squares << status[2]
+	end
+	enemy_squares = []
+	moves_hash.each do |_, status|
+		enemy_squares << status[2] if status[1] == enemy_symbol
+	end
+	threats = win_sequences.map do |sequence|
+		(sequence - enemy_squares)
+	end
+	threats.delete_if { |threats| threats.size > 1 }
+	threats.flatten!
+	threat = threats.select { |threat| open_squares.include?(threat) }
+	threat[0]
+end
+
+def get_defensive_computer_move(symbol, moves_hash, wins_hash, win_sequences)
+	possible_moves = moves_hash.select { |_, status| status[1] == ' ' }
+	threat_location = check_for_threat(moves_hash, win_sequences, possible_moves, symbol)
+	moves_hash.each do |_, status|
+		if status[2] == threat_location
+			status[1] = symbol
+		end
+	end
 end
 
 def execute_gameplay_user_first(moves_hash, wins_hash)
@@ -311,4 +327,8 @@ end
 # p winning_squares = get_winning_squares_location(wins_hash, winning_sequence)
 # puts display_winning_gameboard(moves_hash, winning_squares)
 
-puts get_order_of_play(moves_hash, wins_hash)
+# puts get_order_of_play(moves_hash, wins_hash)
+# possible_moves = get_defensive_computer_move('X', moves_hash, wins_hash)
+display_gameboard(moves_hash)
+get_defensive_computer_move('X', moves_hash, wins_hash, win_sequences)
+display_gameboard(moves_hash)

@@ -269,11 +269,6 @@ def execute_gameplay_user_first(moves_hash, wins_hash, win_sequences)
 		user_symbol == 'X' ? computer_symbol = 'O' : computer_symbol = 'X'
 		winning_symbol = ''
 		loop do
-			if check_for_tie(moves_hash)
-				prompt "Blah, it's a tie!"
-				break
-			end
-
 			prompt "Here's what the gameboard looks like:"
 			display_gameboard(moves_hash)
 			get_user_move(user_symbol, moves_hash)
@@ -310,11 +305,6 @@ def execute_gameplay_computer_first(moves_hash, wins_hash, win_sequences)
 	prompt "the computer chooses '#{computer_symbol}'. You will play as '#{user_symbol}'."
 	winning_symbol = ''
 	loop do
-		if check_for_tie(moves_hash)
-			prompt "Blah, it's a tie!"
-			break
-		end
-
 		prompt "The computer chooses..."
 		get_defensive_computer_move(computer_symbol, moves_hash, wins_hash, win_sequences)
 		display_gameboard(moves_hash)

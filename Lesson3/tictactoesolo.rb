@@ -152,7 +152,8 @@ def get_coin_flip_choice
 	choice
 end
 
-def coin_flip(choice)
+def coin_flip
+	choice = get_coin_flip_choice
 	num = rand(1..2)
 	num.odd? ? (coin = "heads") : (coin = "tails")
 	choice == coin ? (first = 'You') : (first = 'The computer')
@@ -336,9 +337,8 @@ def execute_gameplay_computer_first(moves_hash, wins_hash, win_sequences)
 end
 
 def get_order_of_play(moves_hash, wins_hash, win_sequences)
-	choice = get_coin_flip_choice
-	first = coin_flip(choice)
-	if first == 'The computer'
+	first_player = coin_flip
+	if first_player == 'The computer'
 		execute_gameplay_computer_first(moves_hash, wins_hash, win_sequences)
 	else
 		execute_gameplay_user_first(moves_hash, wins_hash, win_sequences)

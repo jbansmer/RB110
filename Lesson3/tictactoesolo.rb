@@ -41,14 +41,14 @@ Check for winner:
 require 'abbrev'
 
 moves_hash = {
-	top_left: [2, 'X', 1],
-	top_center: [6, 'X', 2],
+	top_left: [2, ' ', 1],
+	top_center: [6, ' ', 2],
 	top_right: [10, ' ', 3],
-	center_left: [28, 'O', 4],
-	center: [32, 'O', 5],
+	center_left: [28, ' ', 4],
+	center: [32, ' ', 5],
 	center_right: [36, ' ', 6],
-	bottom_left: [54, 'O', 7],
-	bottom_center: [58, 'X', 8],
+	bottom_left: [54, ' ', 7],
+	bottom_center: [58, ' ', 8],
 	bottom_right: [62, ' ', 9]
 }
 
@@ -98,6 +98,14 @@ end
 def check_for_winner(wins_hash, moves_hash, symbol)
 	square_ids = update_occupied_squares(moves_hash, symbol)
 	get_winning_squares_sequence(wins_hash, square_ids)
+end
+
+def check_for_tie(moves_hash)
+	occupied_squares = []
+	moves_hash.each do |_, status|
+		occupied_squares << status[1] if status[1] == ' '
+	end
+	occupied_squares.empty?
 end
 
 def get_winning_squares_location(wins_hash, winning_sequence)
@@ -245,18 +253,27 @@ end
 def get_defensive_computer_move(symbol, moves_hash, wins_hash, win_sequences)
 	possible_moves = moves_hash.select { |_, status| status[1] == ' ' }
 	threat_location = check_for_threat(moves_hash, win_sequences, possible_moves, symbol)
-	moves_hash.each do |_, status|
-		if status[2] == threat_location
-			status[1] = symbol
+	if threat_location == nil
+		get_random_computer_move(symbol, moves_hash)
+	else
+		moves_hash.each do |_, status|
+			if status[2] == threat_location
+				status[1] = symbol
+			end
 		end
 	end
 end
 
-def execute_gameplay_user_first(moves_hash, wins_hash)
+def execute_gameplay_user_first(moves_hash, wins_hash, win_sequences)
 		user_symbol = get_user_symbol
 		user_symbol == 'X' ? computer_symbol = 'O' : computer_symbol = 'X'
 		winning_symbol = ''
 		loop do
+			if check_for_tie(moves_hash)
+				prompt "Blah, it's a tie!"
+				break
+			end
+
 			prompt "Here's what the gameboard looks like:"
 			display_gameboard(moves_hash)
 			get_user_move(user_symbol, moves_hash)
@@ -267,8 +284,13 @@ def execute_gameplay_user_first(moves_hash, wins_hash)
 				break
 			end
 
+			if check_for_tie(moves_hash)
+				prompt "Blah, it's a tie!"
+				break
+			end
+
 			prompt "The computer chooses..."
-			get_random_computer_move(computer_symbol, moves_hash)
+			get_defensive_computer_move(computer_symbol, moves_hash, wins_hash, win_sequences)
 			display_gameboard(moves_hash)
 			winning_symbol = computer_symbol
 			if check_for_winner(wins_hash, moves_hash, computer_symbol).any?
@@ -282,18 +304,28 @@ def execute_gameplay_user_first(moves_hash, wins_hash)
 		display_winning_gameboard(moves_hash, winning_squares)
 end
 
-def execute_gameplay_computer_first(moves_hash, wins_hash)
+def execute_gameplay_computer_first(moves_hash, wins_hash, win_sequences)
 	computer_symbol = get_computer_symbol
 	computer_symbol == 'X' ? user_symbol = 'O' : user_symbol = 'X'
 	prompt "the computer chooses '#{computer_symbol}'. You will play as '#{user_symbol}'."
 	winning_symbol = ''
 	loop do
+		if check_for_tie(moves_hash)
+			prompt "Blah, it's a tie!"
+			break
+		end
+
 		prompt "The computer chooses..."
-		get_random_computer_move(computer_symbol, moves_hash)
+		get_defensive_computer_move(computer_symbol, moves_hash, wins_hash, win_sequences)
 		display_gameboard(moves_hash)
 		winning_symbol = computer_symbol
 		if check_for_winner(wins_hash, moves_hash, computer_symbol).any?
 			prompt "Uh oh! The computer beat you!"
+			break
+		end
+
+		if check_for_tie(moves_hash)
+			prompt "Blah, it's a tie!"
 			break
 		end
 
@@ -313,22 +345,14 @@ def execute_gameplay_computer_first(moves_hash, wins_hash)
 	display_winning_gameboard(moves_hash, winning_squares)
 end
 
-def get_order_of_play(moves_hash, wins_hash)
+def get_order_of_play(moves_hash, wins_hash, win_sequences)
 	choice = get_coin_flip_choice
 	first = coin_flip(choice)
 	if first == 'The computer'
-		execute_gameplay_computer_first(moves_hash, wins_hash)
+		execute_gameplay_computer_first(moves_hash, wins_hash, win_sequences)
 	else
-		execute_gameplay_user_first(moves_hash, wins_hash)
+		execute_gameplay_user_first(moves_hash, wins_hash, win_sequences)
 	end
 end
 
-# p winning_sequence = check_for_winner(wins_hash, moves_hash, 'X')
-# p winning_squares = get_winning_squares_location(wins_hash, winning_sequence)
-# puts display_winning_gameboard(moves_hash, winning_squares)
-
-# puts get_order_of_play(moves_hash, wins_hash)
-# possible_moves = get_defensive_computer_move('X', moves_hash, wins_hash)
-display_gameboard(moves_hash)
-get_defensive_computer_move('X', moves_hash, wins_hash, win_sequences)
-display_gameboard(moves_hash)
+puts get_order_of_play(moves_hash, wins_hash, win_sequences)

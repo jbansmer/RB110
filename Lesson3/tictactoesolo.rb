@@ -144,7 +144,7 @@ def get_coin_flip_choice
 		if heads.keys.include?(choice)
 			choice = 'heads'
 			break
-		elsif tails.values.include?(choice)
+		elsif tails.keys.include?(choice)
 			choice = 'tails'
 			break
 		else
@@ -226,7 +226,7 @@ def get_user_move(symbol, moves_hash)
 	moves_hash[move[0][0]][1] = symbol
 end
 
-def get_computer_move(symbol, moves_hash)
+def get_random_computer_move(symbol, moves_hash)
 	possible_moves = moves_hash.select do |_, status|
 		status[1] == ' '
 	end
@@ -252,7 +252,7 @@ def execute_gameplay_user_first(moves_hash, wins_hash)
 			end
 
 			prompt "The computer chooses..."
-			get_computer_move(computer_symbol, moves_hash)
+			get_random_computer_move(computer_symbol, moves_hash)
 			display_gameboard(moves_hash)
 			winning_symbol = computer_symbol
 			if check_for_winner(wins_hash, moves_hash, computer_symbol).any?
@@ -273,7 +273,7 @@ def execute_gameplay_computer_first(moves_hash, wins_hash)
 	winning_symbol = ''
 	loop do
 		prompt "The computer chooses..."
-		get_computer_move(computer_symbol, moves_hash)
+		get_random_computer_move(computer_symbol, moves_hash)
 		display_gameboard(moves_hash)
 		winning_symbol = computer_symbol
 		if check_for_winner(wins_hash, moves_hash, computer_symbol).any?

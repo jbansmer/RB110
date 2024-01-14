@@ -55,6 +55,24 @@ possible_moves = {
   9 => ['bottom right', 62, ' ']
 }
 
+wins_totals = { you: 0, computer: 0, ties: 0 }
+
+# rubocop:disable Layout/LineLength
+def display_wins_totals(wins_totals)
+  user = wins_totals[:you]
+  u_game = equality_ternary(user, 1, 'game', 'games')
+
+  computer = wins_totals[:computer]
+  c_game = equality_ternary(computer, 1, 'game', 'games')
+
+  ties = wins_totals[:ties]
+  t_verb = equality_ternary(ties, 1, 'was', 'were')
+  t_game = equality_ternary(ties, 1, 'tie', 'ties')
+
+  prompt "You won #{user} #{u_game}, the computer won #{computer} #{c_game}, and there #{t_verb} #{ties} #{t_game}."
+end
+# rubocop:enable Layout/LineLength
+
 def prompt(message)
   puts "=> #{message}"
 end
@@ -119,6 +137,16 @@ end
 def validate_user_selection(possible_moves, move_id)
   possible_moves.select do |square_id, status|
     square_id == move_id && status[2] == ' '
+  end
+end
+
+def validate_play_again(answer)
+  if answer.start_with?('y')
+    true
+  elsif answer.start_with?('n')
+    false
+  else
+    prompt "Invalid response. Choose 'yes' or 'no':"
   end
 end
 
@@ -195,6 +223,10 @@ def select_random_computer_move(symbol, possible_moves)
   display_gameboard(possible_moves)
 end
 
+def select_defensive_computer_move(symbol, possible_moves)
+  
+end
+
 def select_occupied_squares(symbol, possible_moves)
   squares = possible_moves.select { |_, status| status[2] == symbol }
   squares.keys
@@ -238,6 +270,17 @@ def tie?(possible_moves)
   end
 end
 
+def play_again?
+  prompt "Do you want to play again?"
+  again = ''
+  loop do
+    play_again = gets.chomp.downcase
+    again = validate_play_again(play_again)
+    break if again.instance_of?(TrueClass) || again.instance_of?(FalseClass)
+  end
+  again
+end
+
 def user_move(symbol, possible_moves)
   prompt "It's your move! Here's what the board looks like:"
   display_gameboard(possible_moves)
@@ -251,50 +294,52 @@ def computer_move(symbol, possible_moves)
 end
 
 # rubocop:disable Metrics/MethodLength
-def user_first_move(first_player_symbol, second_player_symbol,
-                    possible_moves)
+def user_moves_first(first_player_symbol,
+                     second_player_symbol,
+                     possible_moves)
   loop do
     user_move(first_player_symbol, possible_moves)
     winner, winning_sequence = winner?(first_player_symbol, possible_moves)
     if winner
-      prompt "You win!"
+      prompt "Nice! You win!"
       display_winning_gameboard(possible_moves, winning_sequence)
-      break
+      return :you
     end
     if tie?(possible_moves)
       display_gameboard(possible_moves)
-      break
+      return :ties
     end
     computer_move(second_player_symbol, possible_moves)
     winner, winning_sequence = winner?(second_player_symbol, possible_moves)
     if winner
-      prompt "The computer wins!"
+      prompt "Uh oh! The computer wins!"
       display_winning_gameboard(possible_moves, winning_sequence)
-      break
+      return :computer
     end
   end
 end
 
-def computer_first_move(first_player_symbol, second_player_symbol,
-                        possible_moves)
+def computer_moves_first(first_player_symbol,
+                         second_player_symbol,
+                         possible_moves)
   loop do
     computer_move(first_player_symbol, possible_moves)
     winner, winning_sequence = winner?(first_player_symbol, possible_moves)
     if winner
-      prompt "The computer wins!"
+      prompt "Uh oh! The computer wins!"
       display_winning_gameboard(possible_moves, winning_sequence)
-      break
+      return :computer
     end
     if tie?(possible_moves)
       display_gameboard(possible_moves)
-      break
+      return :ties
     end
     user_move(second_player_symbol, possible_moves)
     winner, winning_sequence = winner?(second_player_symbol, possible_moves)
     if winner
-      prompt "You win!"
+      prompt "Nice! You win!"
       display_winning_gameboard(possible_moves, winning_sequence)
-      break
+      return :you
     end
   end
 end
@@ -304,8 +349,31 @@ first_player = coin_flip
 first_player_symbol = select_symbol(first_player)
 second_player_symbol = equality_ternary(first_player_symbol, 'X', 'O', 'X')
 
-if first_player == :user
-  user_first_move(first_player_symbol, second_player_symbol, possible_moves)
-else
-  computer_first_move(first_player_symbol, second_player_symbol, possible_moves)
+# rubocop:disable Layout/LineLength
+loop do
+  if first_player == :user
+    result = user_moves_first(first_player_symbol, second_player_symbol, possible_moves)
+    wins_totals[result] += 1
+    first_player = equality_ternary(first_player, :user, :computer, :user)
+    if play_again?
+      prompt "You went first last time, the computer will play first this round."
+    else
+      prompt "Thanks for playing!"
+      break
+    end
+  else
+    result = computer_moves_first(first_player_symbol, second_player_symbol, possible_moves)
+    wins_totals[result] += 1
+    first_player = equality_ternary(first_player, :user, :computer, :user)
+    if play_again?
+      prompt "The computer went first last time, you will play first this round."
+    else
+      prompt "Thanks for playing!"
+      break
+    end
+  end
+  clear_gameboard(possible_moves)
 end
+# rubocop:enable Layout/LineLength
+
+display_wins_totals(wins_totals)

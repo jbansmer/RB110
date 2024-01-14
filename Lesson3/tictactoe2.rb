@@ -224,7 +224,34 @@ def select_random_computer_move(symbol, possible_moves)
 end
 
 def select_defensive_computer_move(symbol, possible_moves)
-  
+  threats = check_for_threat(symbol, possible_moves)
+  threats[0]
+end
+
+def open_squares(possible_moves)
+  possible_moves.select do |_, status|
+    status[2] == ' '
+  end
+end
+
+def enemy_squares(possible_moves, enemy_symbol)
+  possible_moves.select do |_, status|
+    status[2] == enemy_symbol
+  end
+end
+
+def check_for_threat(symbol, possible_moves)
+  enemy_symbol = equality_ternary(symbol, 'X', 'O', 'X')
+  open_squares = open_squares(possible_moves).keys
+  enemy_squares = enemy_squares(possible_moves, enemy_symbol).keys
+
+  threats = WIN_SEQUENCES.map do |sequence|
+    (sequence - enemy_squares)
+  end
+
+  threats.delete_if { |threat| threat.size > 1 }
+  threats.flatten!
+  threats.select { |threat| open_squares.include?(threat) }
 end
 
 def select_occupied_squares(symbol, possible_moves)
@@ -290,7 +317,12 @@ end
 def computer_move(symbol, possible_moves)
   prompt "It's the computer's move! Here's what the board looks like:"
   display_gameboard(possible_moves)
-  select_random_computer_move(symbol, possible_moves)
+  defensive_move = select_defensive_computer_move(symbol, possible_moves)
+  if defensive_move.nil?
+    select_random_computer_move(symbol, possible_moves)
+  else
+    possible_moves[defensive_move][2] = symbol
+  end
 end
 
 # rubocop:disable Metrics/MethodLength
@@ -346,11 +378,12 @@ end
 # rubocop:enable Metrics/MethodLength
 
 first_player = coin_flip
-first_player_symbol = select_symbol(first_player)
-second_player_symbol = equality_ternary(first_player_symbol, 'X', 'O', 'X')
 
 # rubocop:disable Layout/LineLength
 loop do
+  first_player_symbol = select_symbol(first_player)
+  second_player_symbol = equality_ternary(first_player_symbol, 'X', 'O', 'X')
+
   if first_player == :user
     result = user_moves_first(first_player_symbol, second_player_symbol, possible_moves)
     wins_totals[result] += 1
@@ -372,6 +405,7 @@ loop do
       break
     end
   end
+
   clear_gameboard(possible_moves)
 end
 # rubocop:enable Layout/LineLength

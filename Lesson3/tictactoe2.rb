@@ -228,6 +228,11 @@ def select_defensive_computer_move(symbol, possible_moves)
   threats[0]
 end
 
+def select_offensive_computer_move(symbol, possible_moves)
+  opportunities = check_for_opportunity(symbol, possible_moves)
+  opportunities[0]
+end
+
 def open_squares(possible_moves)
   possible_moves.select do |_, status|
     status[2] == ' '
@@ -237,6 +242,12 @@ end
 def enemy_squares(possible_moves, enemy_symbol)
   possible_moves.select do |_, status|
     status[2] == enemy_symbol
+  end
+end
+
+def friendly_squares(possible_moves, symbol)
+  possible_moves.select do |_, status|
+    status[2] == symbol
   end
 end
 
@@ -252,6 +263,19 @@ def check_for_threat(symbol, possible_moves)
   threats.delete_if { |threat| threat.size > 1 }
   threats.flatten!
   threats.select { |threat| open_squares.include?(threat) }
+end
+
+def check_for_opportunity(symbol, possible_moves)
+  open_squares = open_squares(possible_moves).keys
+  friendly_squares = friendly_squares(possible_moves, symbol).keys
+
+  opportunities = WIN_SEQUENCES.map do |sequence|
+    (sequence - friendly_squares)
+  end
+
+  opportunities.delete_if { |opportunity| opportunity.size > 1 }
+  opportunities.flatten!
+  opportunities.select { |opportunity| open_squares.include?(opportunity) }
 end
 
 def select_occupied_squares(symbol, possible_moves)
@@ -318,10 +342,13 @@ def computer_move(symbol, possible_moves)
   prompt "It's the computer's move! Here's what the board looks like:"
   display_gameboard(possible_moves)
   defensive_move = select_defensive_computer_move(symbol, possible_moves)
-  if defensive_move.nil?
-    select_random_computer_move(symbol, possible_moves)
-  else
+  offensive_move = select_offensive_computer_move(symbol, possible_moves)
+  if offensive_move != nil
+    possible_moves[offensive_move][2] = symbol
+  elsif defensive_move != nil
     possible_moves[defensive_move][2] = symbol
+  else
+    select_random_computer_move(symbol, possible_moves)
   end
 end
 

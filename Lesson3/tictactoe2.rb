@@ -323,9 +323,9 @@ def computer_move(symbol, possible_moves)
   display_gameboard(possible_moves)
   defensive_move = select_defensive_computer_move(symbol, possible_moves)
   offensive_move = select_offensive_computer_move(symbol, possible_moves)
-  if offensive_move != nil
+  if !offensive_move.nil?
     possible_moves[offensive_move][2] = symbol
-  elsif defensive_move != nil
+  elsif !defensive_move.nil?
     possible_moves[defensive_move][2] = symbol
   else
     select_random_computer_move(symbol, possible_moves)

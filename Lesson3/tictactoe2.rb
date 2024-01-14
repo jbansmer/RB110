@@ -1,34 +1,3 @@
-=begin
-- Explain rules of game
-  - coin flip
-  - pick x/o
-  - play until win/tie
-  - play again?
-  - winner goes first or tie opposite player goes first
-- pick heads/tails
-- user or computer picks x/o
-loop:
-  - first player goes
-  - check for winner
-  - second player goes
-  - check for winner
-if winner:
-- display winner
-  - winning player
-  - winning sequence
-  - increment games won by player
-if tie:
-- display tie
-- play_again?
-if play_again:
-  - winner or second tying player goes first
-    - chooses x/o
-  -repeat gameplay loop through play_again?
-else:
-  - display win counts by player
-  - goodbye
-=end
-
 require 'abbrev'
 
 RULES = <<-HEREDOC

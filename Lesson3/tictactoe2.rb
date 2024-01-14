@@ -31,6 +31,17 @@ else:
 
 require 'abbrev'
 
+RULES = <<-HEREDOC
+Welcome to Tic-Tac-Toe! Get three of your symbols in a row!
+
+The winner of a coin flip will pick their symbol and will go first.
+
+Play as many games as you wish - the number of wins for each player
+and the number of ties will be recorded.
+
+After each game, the player order will alternate.
+HEREDOC
+
 WIN_SEQUENCES = [
   [1, 2, 3],
   [4, 5, 6],
@@ -404,6 +415,7 @@ def computer_moves_first(first_player_symbol,
 end
 # rubocop:enable Metrics/MethodLength
 
+puts RULES
 first_player = coin_flip
 
 # rubocop:disable Layout/LineLength
